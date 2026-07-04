@@ -1,85 +1,171 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
+<meta charset="UTF-8">
+<title>Galaxy Pro</title>
 
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background:#000;
+}
 
-    <title>🌌 Galaxia del Amor</title>
-
-    <link rel="stylesheet" href="style.css">
-
+canvas{
+    display:block;
+}
+</style>
 </head>
 
 <body>
+<canvas id="c"></canvas>
 
-    <!-- Fondo de estrellas -->
-    <canvas id="space"></canvas>
+<script>
+const c = document.getElementById("c");
+const ctx = c.getContext("2d");
 
-    <!-- Nebulosas -->
-    <div id="nebula1"></div>
-    <div id="nebula2"></div>
-    <div id="nebula3"></div>
+function resize(){
+    c.width = innerWidth;
+    c.height = innerHeight;
+}
+resize();
+addEventListener("resize", resize);
 
-    <!-- Galaxia -->
-    <div id="galaxy">
+/* =========================
+   ESTRELLAS DE FONDO (PRO)
+========================= */
 
-        <div class="spiral s1"></div>
-        <div class="spiral s2"></div>
-        <div class="spiral s3"></div>
-        <div class="spiral s4"></div>
+const stars = [];
+for(let i=0;i<1200;i++){
+    stars.push({
+        x: Math.random()*innerWidth,
+        y: Math.random()*innerHeight,
+        s: Math.random()*1.2,
+        a: 0.2 + Math.random()*0.8
+    });
+}
 
-        <div class="core"></div>
+/* =========================
+   GALAXIA (ESPIRAL REALISTA)
+========================= */
 
-    </div>
+const galaxy = [];
+const arms = 4;
 
-    <!-- Corazón de partículas -->
-    <canvas id="heart"></canvas>
+for(let i=0;i<1600;i++){
+    const arm = i % arms;
 
-    <!-- Frases flotantes -->
-    <div id="loveContainer"></div>
+    galaxy.push({
+        arm,
+        r: Math.random()*520,
+        angle: Math.random()*Math.PI*2,
+        speed: 0.0006 + Math.random()*0.0012,
+        size: 1 + Math.random()*1.4
+    });
+}
 
-    <!-- Halo brillante -->
-    <div id="glow"></div>
+/* =========================
+   TEXTO (100 IDIOMAS LIMPIO)
+========================= */
 
-    <!-- Título principal -->
-    <div id="title">
+const words = [
+"Te amo","I love you","Je t’aime","Ich liebe dich","Ti amo",
+"Eu te amo","Aishiteru","Saranghae","Amor","Love","Forever",
+"Mi vida","My love","Soulmate","Eternal love"
+];
 
-        <span class="shine">✨</span>
+while(words.length < 100){
+    words.push(words[words.length % 15]);
+}
 
-        <h1>Te Amo ❤️</h1>
+const texts = [];
+for(let i=0;i<70;i++){
+    texts.push({
+        arm: i % 4,
+        r: 140 + Math.random()*360,
+        angle: Math.random()*Math.PI*2,
+        speed: 0.0008 + Math.random()*0.0012,
+        word: words[Math.floor(Math.random()*words.length)],
+        size: 11 + Math.random()*5
+    });
+}
 
-        <h2>En todos los idiomas del universo</h2>
+/* =========================
+   LOOP PRINCIPAL
+========================= */
 
-    </div>
+function draw(){
 
-    <!-- Destellos -->
-    <div id="sparkles">
+    // fondo sólido limpio (NO trails)
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0,0,c.width,c.height);
 
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
+    const cx = c.width/2;
+    const cy = c.height/2;
 
-    </div>
+    /* =========================
+       ESTRELLAS
+    ========================= */
 
-    <!-- Capas de profundidad -->
-    <div id="layer1"></div>
-    <div id="layer2"></div>
-    <div id="layer3"></div>
+    ctx.fillStyle = "#ffffff";
+    for(let s of stars){
+        ctx.globalAlpha = s.a * 0.6;
+        ctx.fillRect(s.x, s.y, s.s, s.s);
+    }
 
-    <!-- Brillo central -->
-    <div id="centerGlow"></div>
+    /* =========================
+       GALAXIA ESPIRAL
+    ========================= */
 
-    <!-- Script -->
-    <script src="script.js"></script>
+    for(let p of galaxy){
+
+        p.angle += p.speed;
+
+        const armOffset = (p.arm / arms) * Math.PI * 2;
+
+        // espiral más natural
+        const spiral = Math.log(p.r + 1) * 1.5;
+
+        const x = cx + Math.cos(p.angle + armOffset + spiral) * p.r;
+        const y = cy + Math.sin(p.angle + armOffset + spiral) * p.r * 0.65;
+
+        const alpha = 1 - (p.r / 520);
+
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = "#cfe6ff";
+
+        ctx.fillRect(x, y, p.size, p.size);
+    }
+
+    /* =========================
+       TEXTO (SATÉLITES CONTROLADOS)
+    ========================= */
+
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = "#ffffff";
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = "rgba(180,210,255,0.6)";
+
+    for(let t of texts){
+
+        t.angle += t.speed;
+
+        const armOffset = (t.arm/4)*Math.PI*2;
+        const spiral = Math.log(t.r + 1) * 1.2;
+
+        const x = cx + Math.cos(t.angle + armOffset + spiral) * t.r;
+        const y = cy + Math.sin(t.angle + armOffset + spiral) * t.r * 0.65;
+
+        ctx.font = `${t.size}px Arial`;
+
+        ctx.fillText(t.word, x, y);
+    }
+
+    requestAnimationFrame(draw);
+}
+
+draw();
+</script>
 
 </body>
-
-</html>
+</html
